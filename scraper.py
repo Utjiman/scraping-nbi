@@ -1,8 +1,10 @@
 from pathlib import Path
-import requests
-from bs4 import BeautifulSoup
+import requests               # Används för att skicka HTTP-förfrågningar.
+from bs4 import BeautifulSoup # Används för att parsa HTML-dokument.
 
 
+# scrape: hämtar sidan och extraherar länkar från ett specifikt HTML-element. 
+# Returnerar en uppsättning länkar i ett dictionary-format där nyckeln är ett segment av URL:en.
 class NBILinkScraper:
     def __init__(self) -> None:
         self.base_url = "https://www.nbi-handelsakademin.se"
@@ -18,7 +20,7 @@ class NBILinkScraper:
 
         return extracted_links
 
-
+# scrape: Hämtar och returnerar textinnehåll från specifika HTML-element på en sida.
 class DataScraper:
     def __init__(self, pathname, query="") -> None:
         self.links = NBILinkScraper().scrape(pathname, query)
@@ -48,14 +50,15 @@ class CourseScraper(DataScraper):
     def __init__(self) -> None:
         super().__init__("kurser")
 
-
+# soup: En statisk metod som hämtar en webbsida och returnerar en BeautifulSoup-objekt för att parsa HTML.
 class ExtractHtml:
     @staticmethod
     def soup(url):
         response = requests.get(url)
         return BeautifulSoup(response.text, "html.parser")
 
-
+# extract_text: Extraherar text från alla element som matchar en given CSS-selektor och returnerar som en sammansatt sträng.
+# extract_list: Returnerar en lista med text från alla element som matchar en given CSS-selektor.
 class ScrapeFormat:
     def __init__(self, pathname) -> None:
         base_url = NBILinkScraper().base_url
@@ -69,7 +72,8 @@ class ScrapeFormat:
     def extract_list(self, tag):
         return [tag.text for tag in self.soup.select(tag)]
 
-
+# En specialiserad klass för att skrapa ansökningssidor och extrahera 
+# specifik information såsom beskrivningar, tidsplan, tillgängliga utbildningar och ansökningssteg.
 class ApplicationScraper:
     def __init__(self, pathname="ansokan") -> None:
         self._scraper = ScrapeFormat(pathname)
@@ -90,7 +94,7 @@ class ApplicationScraper:
     def application_steps(self) -> list:
         return self._scraper.extract_list("h3 a")
 
-
+# En specialiserad klass för att skrapa FAQ-sidor och extrahera frågor och svar.
 class FaqScraper:
     def __init__(self, pathname="faq") -> None:
         self._scraper = ScrapeFormat(pathname)
